@@ -2,9 +2,9 @@
   "name": "ekapi",
   "version": "1.0.0",
   "description": "API for Emoji Kitchen to valid Telegram sticker size",
-  "main": "index.js",
+  "main": "api/index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node api/index.js"
   },
   "author": "coo11",
   "type": "module",

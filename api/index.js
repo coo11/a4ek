@@ -1,13 +1,12 @@
-import fs from 'fs';
 import express from 'express';
 import morgan from 'morgan';
 import axios from 'axios';
 import sharp from 'sharp';
-import config from './config.js';
+import ekquery from '../emoji/query.js';
 
 const app = express();
 app.use(morgan('dev'));
-const port = process.env.PORT || config.port;
+const port = process.env.PORT || 8080;
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms))
@@ -38,14 +37,19 @@ const transform = image => {
 /* app.get("/favicon.ico", (req, res) => { return res.status(404).end(); }); */
 
 app.get("/emojikitchen", async (req, res) => {
-    const { suffix } = req.query;
-    if (!suffix) return res.status(400).send();
-    const url = `${config.emojiKitchen.prefix}/${suffix.replace('.webp', '.png')}`;
+    const { suffix, query } = req.query;
+    if (!suffix && !query) return res.status(400).send();
     try {
-        const { data } = await axios({ method: 'GET', url, responseType: 'stream' });
-        const transformed = await transform(data);
-        res.setHeader('content-type', 'image/webp')
-        transformed.pipe(res);
+        if (suffix) {
+            const url = `https://www.gstatic.com/android/keyboard/emojikitchen/${suffix.replace('.webp', '.png')}`;
+            const { data } = await axios({ method: 'GET', url, responseType: 'stream' });
+            const transformed = await transform(data);
+            res.setHeader('content-type', 'image/webp')
+            transformed.pipe(res);
+        } else {
+            const suffixStr = ekquery(query);
+            res.status(200).send(suffixStr || 'not found');
+        }
     } catch (e) {
         res.status(404).send(e);
     }
