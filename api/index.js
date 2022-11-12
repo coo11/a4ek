@@ -5,6 +5,7 @@ import sharp from "sharp";
 import sha256 from "crypto-js/sha256.js";
 import wordArray from "crypto-js/lib-typedarrays.js";
 import ekquery from "../emoji/query.js";
+import e from "express";
 
 const app = express();
 app.use(morgan("dev"));
@@ -80,10 +81,7 @@ app.get("/emojikitchen", async (req, res) => {
   }
 });
 
-app.get("/sha256", async (req, res) => {
-  const { url } = req.query;
-  if (!url) return res.status(400).send("Invalid Parameters");
-  res.setHeader("content-type", "text/plain; charset=utf-8");
+async function calcHashFromUrl(url) {
   try {
     let newUrl = new URL(url),
       extra = {};
@@ -97,13 +95,33 @@ app.get("/sha256", async (req, res) => {
       ...extra,
     });
     if (!/octet-stream|image/.test(headers["content-type"])) {
-      res.status(400).send("Not an image");
+      return "Not an image";
     } else {
-      res.status(200).send(await calcHash(data));
+      return await calcHash(data);
     }
   } catch (e) {
-    console.log(e);
-    res.status(404).send(e.toString());
+    return e.toString();
+  }
+}
+
+app.get("/sha256", async (req, res) => {
+  let { url, urls } = req.query;
+  if (!url && !urls) return res.status(400).send("Invalid Parameters");
+  res.setHeader("content-type", "text/plain; charset=utf-8");
+  if (url) {
+    let result = await calcHashFromUrl(url);
+    res.status(/^\w+$/.test(result) ? 200 : 400).send(result);
+  } else {
+    urls = urls.split(",");
+    if (urls.length > 4) res.status(400).send("Too many urls to request");
+    else {
+      let results = [];
+      for (let url of urls) {
+        results.push(url);
+        results.push(await calcHashFromUrl(url));
+      }
+      res.status(200).send(results.join("\n"));
+    }
   }
 });
 
