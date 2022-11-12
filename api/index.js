@@ -116,6 +116,7 @@ app.get("/sha256", async (req, res) => {
     else {
       let results = [];
       for (let url of urls) {
+        url = url.trim();
         results.push(url);
         results.push(await calcHashFromUrl(url));
       }
