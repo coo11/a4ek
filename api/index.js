@@ -5,7 +5,6 @@ import sharp from "sharp";
 import sha256 from "crypto-js/sha256.js";
 import wordArray from "crypto-js/lib-typedarrays.js";
 import ekquery from "../emoji/query.js";
-import e from "express";
 
 const app = express();
 app.use(morgan("dev"));
