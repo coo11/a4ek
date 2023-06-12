@@ -108,10 +108,10 @@ app.get("/sha256", async (req, res) => {
   if (!url && !urls) return res.status(400).send("Invalid Parameters");
   res.setHeader("content-type", "text/plain; charset=utf-8");
   if (url) {
-    let result = await calcHashFromUrl(url);
+    let result = await calcHashFromUrl(decodeURIComponent(url));
     res.status(/^\w+$/.test(result) ? 200 : 400).send(result);
   } else {
-    urls = urls.split(",");
+    urls = decodeURIComponent(urls).split(",");
     if (urls.length > 4) res.status(400).send("Too many urls to request");
     else {
       let results = [];
